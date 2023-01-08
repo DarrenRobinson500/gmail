@@ -2,7 +2,7 @@ from googleapiclient.discovery import build
 import pickle
 from collections import Counter
 from datetime import datetime, timedelta
-
+from .models import *
 
 SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
 
@@ -22,6 +22,7 @@ def set_periods(year_start, year_end, period=None):
             periods.append(f"after: {x}/10/01 before: {x}/12/31")
     else:
         for x in range(year_start, year_end + 1):
+            # periods.append(f"after: {x}/01/01 before: {x}/3/31")
             periods.append(f"after: {x}/01/01 before: {x}/12/31")
 
 def search_messages(service, query):
@@ -49,6 +50,8 @@ def trash_messages(messages):
                 if header['name'] == 'Date': date = header['value']
             print(f"Trashing: From: {sender}. Date: {date}")
             service.users().messages().trash(userId='me', id=message_id).execute()
+            message_to_delete = Message.objects.filter(id=message_id)
+            message_to_delete.delete()
         except Exception as error:
             print('An error occurred while trashing email: %s' % error)
 
@@ -67,14 +70,14 @@ def print_message(message):
     # size = message.getRawContent().length
     print(f"From: {sender}. Date: {date}")
 
-def get_senders(messages):
+def get_senders_logic(messages):
     print()
     print("Getting senders")
     global senders
     count = 1
     count_exclusions = 0
     for msg in messages:
-        if count % 100 == 0:
+        if count % 10 == 0:
             try:
                 print(count, date.strftime("%y-%m-%d")) # the date from gmail is a string not a date, so this never works.
             except:
@@ -86,13 +89,7 @@ def get_senders(messages):
         for header in headers:
             if header['name'] == 'From': sender = header['value']
             if header['name'] == 'Date': date = header['value']
-        excluded = False
-        for x in exclusion_list:
-            if x in sender:
-                excluded = True
-                count_exclusions += 1
-        if not excluded:
-            senders.append(sender)
+        senders.append(sender)
         count += 1
     print("Exclusions:", count_exclusions)
     return senders
@@ -110,8 +107,8 @@ def get_headings(msg):
 # result = service.users().messages().list(maxResults=10, userId='me').execute()
 # messages = result.get('messages')
 
-creds = pickle.load(open('token.pickle', 'rb'))
-service = build('gmail', 'v1', credentials=creds)
+# creds = pickle.load(open('token.pickle', 'rb'))
+# service = build('gmail', 'v1', credentials=creds)
 
 
 def create_database():
@@ -227,9 +224,9 @@ def main_loop():
     delete_messages_in_database(database)
     print_large_messages()
     all_messages = get_messages()
-    senders = get_senders(all_messages)
+    senders = get_senders_logic(all_messages)
     print(Counter(senders))
     print_unidentified_senders(senders, database)
 
 
-main_loop()
+# main_loop()

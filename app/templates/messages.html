@@ -1,0 +1,18 @@
+{% extends 'base.html'%}
+{% block content %}
+{% load static %}
+<h1>Messages</h1>
+<a href='{% url 'home' %}' class='btn btn-outline-primary btn-sm'>Senders</a>
+<br><br>
+<table class='table table-striped table-hover table-bordered'>
+    <tr><th>Message</th><th>Sender</th><th>Date</th></tr>
+    {% for message in emails %}
+    <tr>
+        <td>{{message.subject}}</td>
+        <td>{{message.sender}}</td>
+        <td>{{message.date}}</td>
+    </tr>
+    {% endfor %}
+</table>
+<br><br>
+{% endblock %}

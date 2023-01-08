@@ -1,5 +1,51 @@
 {% extends 'base.html'%}
 {% block content %}
 {% load static %}
-Home
+<h1>Senders {{range}} [Total emails: {{ total_emails }}]</h1>
+
+{% if null_only == 'True' %}
+    <a href='{% url 'home' start False %}' class='btn btn-primary btn-sm'>Null Only</a>
+{% else %}
+    <a href='{% url 'home' start True %}' class='btn btn-outline-primary btn-sm'>Null Only</a>
+{% endif %}
+
+<a href='{% url 'home' start_prev null_only %}' class='btn btn-outline-primary btn-sm'>Previous</a>
+<a href='{% url 'home' start_next null_only %}' class='btn btn-outline-primary btn-sm'>Next</a><br><br>
+
+<a href='{% url 'show_years' %}' class='btn btn-outline-primary btn-sm'>Show Years</a>
+<a href='{% url 'read_messages' %}' class='btn btn-outline-primary btn-sm'>Reload Messages</a>
+<a href='{% url 'delete_messages' %}' class='btn btn-outline-primary btn-sm'>Delete Messages</a>
+<br><br>
+<table class='table table-striped table-hover table-bordered'>
+    <tr><th>Sender</th><th>Oldest email</th><th>Count</th><th>Type</th><th>Deletion Date</th><th>Options</th></tr>
+    {% for sender in senders %}
+    <tr>
+        <td>
+            <a href='{% url 'show_messages' sender.id %}'>{{sender.name}}</a>
+        </td>
+        <td>
+            {% if sender.oldest_email < sender.deletion_date %}
+                <b>{{sender.oldest_email}}</b>
+            {% else %}
+                {{sender.oldest_email}}
+            {% endif %}
+        </td>
+        <td>{{sender.count}}</td>
+        <td>
+            {% if sender.type is None %}
+                <b>{{sender.type}}</b>
+            {% else %}
+                {{sender.type}}
+            {% endif %}
+        </td>
+        <td>{{sender.deletion_date}}</td>
+        <td>
+            <a href='{% url 'add_type' sender.id "Company" start null_only %}' class='btn btn-outline-primary btn-sm'>Company</a>
+            <a href='{% url 'add_type' sender.id "Person" start null_only %}' class='btn btn-outline-primary btn-sm'>Person</a>
+            <a href='{% url 'add_type' sender.id "Own" start null_only%}' class='btn btn-outline-primary btn-sm'>Own</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+<br><br>
 {% endblock %}
